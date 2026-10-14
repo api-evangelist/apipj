@@ -1,0 +1,76 @@
+# apipj
+
+> API REST de consulta de CNPJ a partir dos dados abertos da Receita Federal do Brasil (carga mensal). Plano gratuito com chave: 10 consultas por minuto e 50.000 por mês. A consulta de CNPJ exige conta (chave de API gratuita). Planos pagos a partir de R$ 12,90/mês. Dois formatos de resposta: completo (padrão) e simplificado (?formato=simplificado: formato plano com campos já formatados, datas DD/MM/AAAA, CNPJ e CEP com pontuação). Suporta CNPJ alfanumérico. Sandbox no navegador para quem tem conta.
+
+Base da API: https://apipj.com.br/v1. Autenticação obrigatória em /v1/cnpj: Authorization: Bearer <chave> (sem chave: 401 unauthorized; /v1/valida e /v1/status são abertos). Respostas em JSON UTF-8; erros em {status:"ERROR", message, code}. As respostas de /v1/cnpj que passam pela autenticação, inclusive 404 e 429, trazem os cabeçalhos X-RateLimit-* e X-Quota-*; os erros 400, 401 e 414 saem antes da contagem, sem eles.
+
+## Fatos
+
+- **O que é:** uma API REST que devolve em JSON os dados cadastrais de um CNPJ: razão social, situação cadastral, CNAE, endereço com código IBGE do município, sócios, Simples Nacional e MEI. Aceita o CNPJ alfanumérico.
+- **Quem opera:** MASTER BI TECNOLOGIA LTDA, CNPJ 35.659.589/0001-19, Belo Horizonte/MG.
+- **No ar desde:** 09/10/2026.
+- **Fonte e frequência:** os dados abertos do CNPJ publicados pela Receita Federal ([gov.br/receitafederal/dados](https://www.gov.br/receitafederal/dados)), recarregados uma vez por mês. A única informação de fora é o código IBGE do município, tirado da [lista oficial de municípios do IBGE](https://servicodados.ibge.gov.br/api/v1/localidades/municipios) e associado ao código de município da Receita pelo nome dentro da UF. Não há consulta em tempo real à Receita, e as respostas não têm valor de certidão.
+- **Carga em uso:** setembro de 2026 (2026-09), com 73.366.147 estabelecimentos (matrizes e filiais, ativos e baixados), 70.085.592 empresas e 28.341.092 registros de sócios. O mês que está no ar aparece em [/v1/status](https://apipj.com.br/v1/status).
+- **Planos:** Gratuito R$ 0 (10 consultas por minuto e 50.000 por mês); Dev R$ 12,90/mês (30 consultas por minuto e 200.000 por mês); Pro R$ 59,90/mês (200 consultas por minuto e 600.000 por mês). O Gratuito não pede cartão; os pagos são cobrados por mês no cartão e podem ser cancelados a qualquer momento pelo painel, sem multa. Detalhes em [preços](https://apipj.com.br/precos) e nos [termos de uso](https://apipj.com.br/termos).
+- **Acesso:** a consulta de CNPJ (`GET /v1/cnpj/{cnpj}`) exige uma chave de API, gerada na hora ao criar a conta grátis. A validação (`GET /v1/valida/{cnpj}`) e o status (`GET /v1/status`) são abertos: sem chave, sem consumir cota e com limite de 60 requisições por minuto por IP em cada uma.
+- **O que não faz:** não vende listas, não oferece download nem exportação da base e não cruza os dados de empresas e sócios com outras bases.
+
+## Documentação
+
+- [Referência completa em Markdown](https://apipj.com.br/docs.md): endpoints, erros, limites, formatos, boas práticas
+- [Documentação (HTML)](https://apipj.com.br/docs)
+- [Texto completo para LLMs](https://apipj.com.br/llms-full.txt): fatos, documentação e guias num arquivo só, em Markdown
+- [OpenAPI 3.1 pública](https://apipj.com.br/openapi-publica.json): só consulta, validação, status e planos, com operationId e exemplos de resposta e erro
+- [OpenAPI 3.1 completa](https://apipj.com.br/openapi.json)
+- [Biblioteca JavaScript/TypeScript oficial](https://www.npmjs.com/package/apipj): npm install apipj (código em https://github.com/apipj/apipj-js)
+- [Biblioteca Python oficial](https://pypi.org/project/apipj/): pip install apipj (código em https://github.com/apipj/apipj-py)
+- [APIs.json](https://apipj.com.br/apis.json) e [catálogo RFC 9727](https://apipj.com.br/.well-known/api-catalog): descrição da API para catálogos e agentes
+- [Servidor MCP](https://apipj.com.br/guias/consultar-cnpj-ia-mcp): https://apipj.com.br/mcp (Streamable HTTP, sem estado); ferramentas validar_cnpj e status_base abertas, consultar_cnpj com a conta apipj: login OAuth (no Claude, adicionar o conector e entrar com o Google) ou Authorization: Bearer <chave>
+- [Sandbox](https://apipj.com.br/sandbox): teste no navegador (consulta exige conta grátis)
+
+## Guias
+
+- [API de CNPJ com dados da Receita Federal: campos, exemplo e limites](https://apipj.com.br/api-cnpj) ([Markdown](https://apipj.com.br/api-cnpj.md)): Webservice de CNPJ em JSON com dados da Receita Federal: razão social, situação, CNAE, endereço com código IBGE, sócios e Simples. Chave grátis.
+- [CNPJ alfanumérico: o que mudou e como validar no seu sistema](https://apipj.com.br/cnpj-alfanumerico) ([Markdown](https://apipj.com.br/cnpj-alfanumerico.md)): CNPJ com letras desde 31/07/2026: validador online, cálculo do dígito verificador, regex, máscara e código em JS, Python, PHP, C#, Java e Delphi.
+- [Como consultar CNPJ em Python](https://apipj.com.br/guias/consultar-cnpj-python) ([Markdown](https://apipj.com.br/guias/consultar-cnpj-python.md)): Consulte CNPJ em Python com requests: cliente pronto, CNPJ alfanumérico, erros 404 e 429 com Retry-After, consultas em lote e cache. Código testado.
+- [Como consultar CNPJ em JavaScript (Node.js)](https://apipj.com.br/guias/consultar-cnpj-javascript) ([Markdown](https://apipj.com.br/guias/consultar-cnpj-javascript.md)): Consulte CNPJ em Node.js com fetch nativo, sem dependências: CNPJ alfanumérico, 404 e 429 com Retry-After, lote com concorrência limitada. Código testado.
+- [Como consultar CNPJ em PHP](https://apipj.com.br/guias/consultar-cnpj-php) ([Markdown](https://apipj.com.br/guias/consultar-cnpj-php.md)): Consulte CNPJ em PHP 8.1+ com curl, sem dependências: CNPJ alfanumérico, 404 e 429 com Retry-After, lista, cache em arquivo e mapeamento. Código testado.
+- [Como consultar CNPJ em C# (.NET)](https://apipj.com.br/guias/consultar-cnpj-csharp) ([Markdown](https://apipj.com.br/guias/consultar-cnpj-csharp.md)): Consulte CNPJ em C# com HttpClient e System.Text.Json: records tipados, CNPJ alfanumérico, 429 com Retry-After, ASP.NET Core e cache. Código testado.
+- [Consulta de CNPJ em lote: cole a lista e baixe a planilha](https://apipj.com.br/consulta-cnpj-em-lote) ([Markdown](https://apipj.com.br/consulta-cnpj-em-lote.md)): Cole ou envie uma lista de CNPJs e baixe um CSV com razão social, situação, CNAE, endereço, código IBGE e Simples. Validação no navegador. Conta grátis.
+- [Gerador de CNPJ válido para testes (numérico e alfanumérico)](https://apipj.com.br/gerador-cnpj) ([Markdown](https://apipj.com.br/gerador-cnpj.md)): Gere de 1 a 1.000 CNPJs válidos para testes, numéricos, alfanuméricos ou mistos, com ou sem máscara, e baixe em CSV ou JSON. Roda no navegador.
+- [API do Simples Nacional e do MEI: opção e datas pelo CNPJ](https://apipj.com.br/guias/api-simples-nacional) ([Markdown](https://apipj.com.br/guias/api-simples-nacional.md)): Consulte pelo CNPJ a opção pelo Simples Nacional e pelo MEI (SIMEI), com as datas de opção e de exclusão, em JSON. Exemplo real e código testado.
+- [Como validar fornecedor pelo CNPJ: checklist, regras e código](https://apipj.com.br/guias/validar-fornecedor-cnpj) ([Markdown](https://apipj.com.br/guias/validar-fornecedor-cnpj.md)): Checklist para validar fornecedor pelo CNPJ: situação e motivo, situação especial, idade, CNAE, natureza, porte e sócios, com código e reconsulta mensal.
+- [Como preencher o cadastro pelo CNPJ: endereço automático no formulário](https://apipj.com.br/guias/preencher-cadastro-cnpj) ([Markdown](https://apipj.com.br/guias/preencher-cadastro-cnpj.md)): Formulário que preenche razão social, endereço com código IBGE, telefone e situação ao digitar o CNPJ. Back-end em Node.js ou Python, sem expor a chave.
+- [Consultar CNPJ no Claude e em agentes de IA com o servidor MCP do apipj](https://apipj.com.br/guias/consultar-cnpj-ia-mcp) ([Markdown](https://apipj.com.br/guias/consultar-cnpj-ia-mcp.md)): Servidor MCP do apipj: validar CNPJ, ver a base e consultar dados da Receita direto no Claude Code e em agentes de IA. Instalação testada.
+- [Consultar CNPJ no Google Planilhas com a função =CNPJ()](https://apipj.com.br/guias/consultar-cnpj-google-planilhas) ([Markdown](https://apipj.com.br/guias/consultar-cnpj-google-planilhas.md)): Função =CNPJ() no Google Planilhas com Apps Script: razão social, situação, CNAE e endereço pela API do apipj, com cache e dentro do limite do plano.
+- [Dados do CNPJ: tabelas da Receita com contagens](https://apipj.com.br/dados) ([Markdown](https://apipj.com.br/dados.md)): Tabelas da Receita com contagens: municípios Receita x IBGE, situação cadastral, natureza jurídica, qualificação, CNAE e o Radar de empresas.
+- [Código de município da Receita (TOM) e código IBGE: tabela de conversão](https://apipj.com.br/dados/municipios-receita-ibge) ([Markdown](https://apipj.com.br/dados/municipios-receita-ibge.md)): De-para dos 5.571 municípios da Receita Federal (código TOM, campo codigo_rfb) para o código IBGE, por UF, com estabelecimentos ativos. CSV e JSON.
+- [Situação cadastral e motivo do CNPJ: códigos e contagem](https://apipj.com.br/dados/situacao-cadastral) ([Markdown](https://apipj.com.br/dados/situacao-cadastral.md)): As 5 situações cadastrais e os 63 motivos da tabela da Receita, com quantos estabelecimentos há em cada um na carga de setembro de 2026.
+- [Natureza jurídica do CNPJ: tabela de códigos com contagem](https://apipj.com.br/dados/natureza-juridica) ([Markdown](https://apipj.com.br/dados/natureza-juridica.md)): Os 91 códigos de natureza jurídica da Receita com matrizes ativas, % MEI, % Simples e qualificação do responsável observada em setembro de 2026.
+- [Qualificação de sócio e do responsável: tabela de códigos](https://apipj.com.br/dados/qualificacao-socio) ([Markdown](https://apipj.com.br/dados/qualificacao-socio.md)): Os 68 códigos de qualificação da Receita com quantas vezes aparecem como sócio no QSA, como responsável e como representante legal. CSV e JSON.
+- [Tabela CNAE com estabelecimentos ativos por código](https://apipj.com.br/dados/cnae) ([Markdown](https://apipj.com.br/dados/cnae.md)): Os 1.359 códigos CNAE da Receita com estabelecimentos ativos como atividade principal e secundária e matrizes abertas em 12 meses. CSV e JSON.
+- [Empresas no Brasil em números: Radar mensal do CNPJ](https://apipj.com.br/dados/empresas-no-brasil) ([Markdown](https://apipj.com.br/dados/empresas-no-brasil.md)): Empresas e estabelecimentos ativos no Brasil, MEI, Simples, porte, UF e aberturas e baixas por mês, na carga de setembro de 2026 do CNPJ.
+- [Dados abertos do CNPJ: onde baixar, layout e armadilhas](https://apipj.com.br/dados-abertos-cnpj) ([Markdown](https://apipj.com.br/dados-abertos-cnpj.md)): Onde baixar os dados abertos do CNPJ da Receita, os 37 arquivos de setembro de 2026, o layout de cada um e as armadilhas de leitura.
+
+## Empresas por atividade e por município
+
+Contagens de estabelecimentos ativos da carga de setembro de 2026, sem nenhum CNPJ (uma página HTML por código, sem espelho Markdown):
+
+- [Empresas por atividade (CNAE)](https://apipj.com.br/cnae): índice das 1.336 subclasses com ativos; cada uma em https://apipj.com.br/cnae/{CNAE com 7 dígitos}, por exemplo https://apipj.com.br/cnae/5611201, com contagem por UF, municípios com mais ativos, classificação e notas do IBGE
+- [Empresas por município](https://apipj.com.br/municipios): índice por UF em https://apipj.com.br/municipios/{uf}, e cada um dos 5.571 municípios em https://apipj.com.br/municipios/{uf}/{nome sem acento, com hífens}, por exemplo https://apipj.com.br/municipios/sp/campinas, com códigos IBGE e da Receita e as principais atividades
+
+## Endpoints
+
+- GET /v1/cnpj/{cnpj}?formato=completo|simplificado: documento cadastral (razão social, situação, CNAE, endereço, sócios, Simples/MEI); exige chave
+- GET /v1/valida/{cnpj}: valida formato e dígito verificador (inclusive alfanumérico); aberto, sem chave e sem cota (60 por minuto por IP)
+- GET /v1/status: estado da API, mês do dataset, número de CNPJs; aberto, sem chave e sem cota (60 por minuto por IP)
+
+## Preços e condições
+
+- [Preços](https://apipj.com.br/precos): Gratuito R$ 0,00/mês (10/min, 50.000/mês); Dev R$ 12,90/mês (30/min, 200.000/mês); Pro R$ 59,90/mês (200/min, 600.000/mês)
+- [Termos de uso](https://apipj.com.br/termos) · [Política de privacidade](https://apipj.com.br/privacidade)
+- [Sobre e metodologia](https://apipj.com.br/sobre) · [Status](https://apipj.com.br/status)
+
+## Contato
+
+- brunogalizzi@masterbi.com

@@ -1,0 +1,1 @@
+{"resource":"https://apipj.com.br/mcp","authorization_servers":["https://apipj.com.br"],"scopes_supported":["cnpj"],"bearer_methods_supported":["header"],"resource_name":"apipj · API de CNPJ","resource_documentation":"https://apipj.com.br/docs#integracao-com-ia-mcp"}

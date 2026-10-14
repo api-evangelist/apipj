@@ -1,29 +1,105 @@
 aid: apipj
+
 name: apipj (MASTER BI TECNOLOGIA LTDA)
-description: 'apipj (MASTER BI TECNOLOGIA LTDA) is a company surfaced via the API Evangelist harvest backlog
-  (source: new-submission) and added to the network as a stub for full-pipeline profiling.'
+
+image: https://apipj.com.br/assets/og.png
+
+description: apipj (MASTER BI TECNOLOGIA LTDA) provides a public API for Brazilian CNPJ company registry lookup. It offers free access up to 50,000
+  queries per month and paid plans for higher volume. The API returns detailed company information such as legal name, registration status, address
+  with IBGE code, activity, partners, Simples and MEI status, all in JSON directly from the Receita Federal dataset as of September 2026.
+
 url: https://raw.githubusercontent.com/api-evangelist/apipj/refs/heads/main/apis.yml
+
 x-type: company
+
 x-source: harvest:new-submission
-x-tier: stub
-x-tier-reason: harvest
+
+x-tier: profiled
+x-tier-reason: enrichment pass 2026-10-14 (modular-v1; was harvest)
+
 specificationVersion: '0.20'
+
 created: '2026-10-14'
+
 modified: '2026-10-14'
+
 tags:
 - Company
-apis: []
+- Brazil
+- CNPJ
+- Registry
+- Public API
+
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+
 common:
+- type: Spectral
+  url: rules/apipj-rules.yml
+- type: Vocabulary
+  url: vocabulary/apipj-vocabulary.yml
+- type: Sandbox
+  url: sandbox/apipj-sandbox.yml
+- type: Conformance
+  url: conformance/apipj-conformance.yml
+- type: LLMsTxt
+  url: llms/apipj-llms.txt
+- type: WellKnown
+  url: well-known/apipj-well-known.yml
+- type: Hosts
+  url: hosts/apipj-hosts.yml
+- type: SDKs
+  url: packages/apipj-packages.yml
+- type: Packages
+  url: packages/apipj-packages.yml
+- type: Sandbox
+  url: https://apipj.com.br/sandbox
+- type: DomainSecurity
+  url: security/apipj-domain-security.yml
 - type: Website
   url: https://apipj.com.br
 - type: Documentation
   url: https://apipj.com.br/docs
-x-submission-notes: Brazilian CNPJ company-registry lookup API (public registry data), named operating
-  company, documented endpoints
+- type: Pricing
+  url: https://apipj.com.br/precos
+- type: TermsOfService
+  url: https://apipj.com.br/termos
+- type: PrivacyPolicy
+  url: https://apipj.com.br/privacidade
+- type: StatusPage
+  url: https://apipj.com.br/status
+- type: GettingStarted
+  url: https://apipj.com.br/guias
+
+apis:
+- name: CNPJ Lookup API
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal.
+  humanURL: https://apipj.com.br/docs
+  baseURL: https://apipj.com.br
+  properties: []
+  aid: apipj:cnpj-lookup-api
+- aid: apipj:apipj-api
+  name: apipj API
+  description: 'API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado`
+
+    (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.'
+  humanURL: https://apipj.com.br/docs
+  baseURL: https://apipj.com.br
+  properties:
+  - type: OpenAPI
+    url: openapi/_original/apipj-api-openapi.json
+
+x-submission-notes: Brazilian CNPJ company-registry lookup API (public registry data), named operating company, documented endpoints
+
 x-submission-probe: root 200, docs 200; soft-404 ok
+
 x-submitted-by: brunogalizzi@masterbi.com (apis.io/add, 2026-10-13)
+x-enrichment:
+  date: '2026-10-14'
+  status: enriched
+  artifacts_added: 18
+  pass: modular-v1
+  engine: identity=local,contract=local,surfaces=local,docs=local,regulatory=local

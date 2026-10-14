@@ -1,0 +1,83 @@
+generated: '2026-10-14'
+method: derived
+source: the pre-flight dossier, apis.yml pointers, spec servers, well-known, vendors -- nothing fetched here
+generator: derive-hosts.py
+summary:
+  hosts: 6
+  own: 1
+  other_domain: 3
+  platform: 2
+  roles:
+  - api
+  - other
+  - website
+hosts:
+- host: api.com.br
+  found_by:
+  - contract-discovery
+  types: []
+  serves: []
+  registrable_domain: api.com.br
+  role: api
+  relation: other-domain
+- host: apipj.com.br
+  found_by:
+  - pointer
+  - apis[]
+  - probed
+  - docs-index
+  - spec-found
+  - contract-discovery
+  - well-known
+  types:
+  - Sandbox
+  - Website
+  - Documentation
+  - Pricing
+  - TermsOfService
+  - PrivacyPolicy
+  - StatusPage
+  - GettingStarted
+  serves:
+  - api
+  - docs
+  - spec
+  registrable_domain: apipj.com.br
+  role: website
+  relation: own
+- host: pypi.org
+  found_by:
+  - docs-index
+  types: []
+  serves:
+  - docs
+  registrable_domain: pypi.org
+  role: other
+  relation: platform
+- host: servicodados.ibge.gov.br
+  found_by:
+  - docs-index
+  types: []
+  serves:
+  - docs
+  registrable_domain: ibge.gov.br
+  role: other
+  relation: other-domain
+- host: www.gov.br
+  found_by:
+  - docs-index
+  types: []
+  serves:
+  - docs
+  registrable_domain: www.gov.br
+  role: other
+  relation: other-domain
+- host: www.npmjs.com
+  found_by:
+  - docs-index
+  types: []
+  serves:
+  - docs
+  registrable_domain: npmjs.com
+  role: other
+  relation: platform

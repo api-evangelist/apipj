@@ -1,0 +1,60 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://apipj.com.br/.well-known/api-catalog",
+      "item": [
+        {
+          "href": "https://apipj.com.br/v1"
+        },
+        {
+          "href": "https://apipj.com.br/mcp"
+        }
+      ],
+      "describedby": [
+        {
+          "href": "https://apipj.com.br/apis.json",
+          "type": "application/json",
+          "title": "APIs.json"
+        }
+      ]
+    },
+    {
+      "anchor": "https://apipj.com.br/v1",
+      "service-desc": [
+        {
+          "href": "https://apipj.com.br/openapi-publica.json",
+          "type": "application/json",
+          "title": "OpenAPI 3.1"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://apipj.com.br/docs",
+          "type": "text/html",
+          "title": "Documentação"
+        },
+        {
+          "href": "https://apipj.com.br/llms.txt",
+          "type": "text/plain",
+          "title": "Guia para agentes de IA"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://apipj.com.br/v1/status",
+          "type": "application/json"
+        }
+      ]
+    },
+    {
+      "anchor": "https://apipj.com.br/mcp",
+      "service-doc": [
+        {
+          "href": "https://apipj.com.br/guias/consultar-cnpj-ia-mcp",
+          "type": "text/html",
+          "title": "Servidor MCP do apipj"
+        }
+      ]
+    }
+  ]
+}

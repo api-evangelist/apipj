@@ -1,0 +1,14 @@
+generated: '2026-10-14'
+method: searched
+generator: extract-docs-artifacts.py (local)
+source: https://apipj.com.br/sandbox
+sources:
+- https://apipj.com.br/sandbox
+description: Sandbox information for apipj (MASTER BI TECNOLOGIA LTDA)
+modes:
+- name: sandbox
+  base_url: https://apipj.com.br
+  how_to_get_access: Create a free account and log in. The sandbox uses the logged‑in session stored in the browser (sessionStorage). An API key
+    can be supplied optionally, but the sandbox will also work without it, using the session credentials.
+docs:
+- https://apipj.com.br/sandbox

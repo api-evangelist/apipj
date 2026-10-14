@@ -1,0 +1,40 @@
+generated: '2026-10-14'
+method: derived
+generator: derive-vocabulary.py
+source: openapi/_original/apipj-api-openapi.json
+vocabulary:
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Domain Vocabulary
+  description: 'Terms declared by apipj (MASTER BI TECNOLOGIA LTDA)''s own API contract: its resource groups, objects and enumerations, with the
+    contract''s definitions. Derived, not authored.'
+  version: '2026-10-14'
+  terms:
+  - term: Público
+    definition: Sem autenticação
+    tags:
+    - Resource Group
+    source: openapi/_original/apipj-api-openapi.json
+  - term: Consulta
+    definition: Consulta de CNPJ (exige chave de API ou sessão do site)
+    tags:
+    - Resource Group
+    source: openapi/_original/apipj-api-openapi.json
+  - term: Conta
+    definition: Cadastro, login e perfil (sessão por cookie)
+    tags:
+    - Resource Group
+    source: openapi/_original/apipj-api-openapi.json
+  - term: Chaves
+    definition: Chaves de API
+    tags:
+    - Resource Group
+    source: openapi/_original/apipj-api-openapi.json
+  - term: Billing
+    definition: Assinaturas (Stripe; Asaas como alternativa)
+    tags:
+    - Resource Group
+    source: openapi/_original/apipj-api-openapi.json
+  - term: Interno
+    definition: Rotas internas (webhooks)
+    tags:
+    - Resource Group
+    source: openapi/_original/apipj-api-openapi.json

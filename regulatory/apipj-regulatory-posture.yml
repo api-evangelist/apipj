@@ -1,0 +1,18 @@
+generated: '2026-10-14'
+method: probed
+source: https://apipj.com.br/privacidade
+signals:
+  subprocessors:
+    - note: Indicates Google acts as a subprocessor/controller for login.
+      evidence:
+        - source: https://apipj.com.br/privacidade
+          http_status: 200
+          fetched: true
+          quote: "Quando você usa o login com o Google, o tratamento feito pelo próprio Google (por exemplo, o registro de que você entrou em um serviço com a sua conta) é de responsabilidade dele, como controlador independente, e segue a Política de Privacidade do Google (https://policies.google.com/privacy), não esta política."
+  ai_transparency:
+    - note: States they do not use account data to train third‑party AI models.
+      evidence:
+        - source: https://apipj.com.br/privacidade
+          http_status: 200
+          fetched: true
+          quote: "não usamos os dados da sua conta para treinar modelos de inteligência artificial de terceiros."
