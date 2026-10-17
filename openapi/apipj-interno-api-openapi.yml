@@ -1,0 +1,73 @@
+openapi: 3.2.0
+info:
+  title: apipj Interno API
+  version: 0.1.0
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado` (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.
+  contact:
+    email: brunogalizzi@masterbi.com
+servers:
+- url: https://apipj.com.br
+tags:
+- name: Interno
+  description: Rotas internas (webhooks)
+paths:
+  /webhooks/asaas:
+    post:
+      summary: Webhook do Asaas (uso interno)
+      tags:
+      - Interno
+      description: Recebe eventos de cobrança/assinatura. Exige o header `asaas-access-token` igual ao token cadastrado no Asaas. Responde 200 assim que o evento é gravado; o processamento é assíncrono e idempotente pelo `id` do evento.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - id
+              - event
+              properties:
+                id:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                event:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                dateCreated:
+                  type: string
+                payment:
+                  type: object
+                subscription:
+                  type: object
+      responses:
+        '200':
+          description: Default Response
+      operationId: postWebhooksAsaas
+      x-operation-id-source: derived
+  /webhooks/stripe:
+    post:
+      summary: Webhook do Stripe (uso interno)
+      tags:
+      - Interno
+      description: Recebe eventos de checkout, fatura, assinatura, estorno e disputa. Exige o cabeçalho `Stripe-Signature` válido (HMAC-SHA256 com o segredo do endpoint, tolerância de 300 s). Responde 200 assim que o evento é gravado; o processamento é assíncrono e idempotente pelo `id` do evento.
+      responses:
+        '200':
+          description: Default Response
+      operationId: postWebhooksStripe
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Authorization: Bearer <chave>'
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    cookie:
+      type: apiKey
+      in: cookie
+      name: __Host-apipj_session

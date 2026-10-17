@@ -1,0 +1,442 @@
+openapi: 3.2.0
+info:
+  title: apipj Conta API
+  version: 0.1.0
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado` (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.
+  contact:
+    email: brunogalizzi@masterbi.com
+servers:
+- url: https://apipj.com.br
+tags:
+- name: Conta
+  description: Cadastro, login e perfil (sessão por cookie)
+paths:
+  /v1/auth/signup:
+    post:
+      summary: Cria conta, sessão e a chave inicial
+      tags:
+      - Conta
+      description: 'Devolve a chave de API uma única vez. Exige `accept_tos: true` (grava versão e data do aceite); `tos_version` é opcional e, se enviada, precisa ser a versão atual dos termos (senão 400 `tos_required`). Limite: 20 cadastros por IP por dia. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              - name
+              - accept_tos
+              additionalProperties: false
+              properties:
+                email:
+                  type: string
+                  minLength: 5
+                  maxLength: 254
+                password:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 120
+                  description: 'Nome, em uma linha: quebra de linha ou caractere de controle → 400 `validation_error` (`field: "name"`); espaços repetidos viram um só'
+                cpf_cnpj:
+                  type: string
+                  maxLength: 24
+                  description: CPF ou CNPJ (opcional no gratuito, obrigatório para assinar)
+                accept_tos:
+                  type: boolean
+                tos_version:
+                  type: string
+                  maxLength: 20
+                  description: Versão dos termos exibida ao usuário (opcional). Se divergir da versão atual, a resposta é 400 `tos_required` com a versão vigente.
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthSignup
+      x-operation-id-source: derived
+  /v1/auth/login:
+    post:
+      summary: Login com e-mail e senha (cookie de sessão)
+      tags:
+      - Conta
+      description: 'Resposta genérica em falha (também para conta criada com o Google, que não tem senha). Bloqueio de 15 minutos após 5 falhas (e-mail + IP) ou 20 falhas (IP). Conta encerrada há menos de 30 dias é reativada pelo login (`reactivated: true`). Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              additionalProperties: false
+              properties:
+                email:
+                  type: string
+                  minLength: 1
+                  maxLength: 254
+                password:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthLogin
+      x-operation-id-source: derived
+  /v1/auth/logout:
+    post:
+      summary: Encerra a sessão atual
+      tags:
+      - Conta
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthLogout
+      x-operation-id-source: derived
+  /v1/auth/accept-tos:
+    post:
+      summary: Registra o aceite da versão atual dos termos
+      tags:
+      - Conta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - accept_tos
+              additionalProperties: false
+              properties:
+                accept_tos:
+                  type: boolean
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthAcceptTos
+      x-operation-id-source: derived
+  /v1/auth/password:
+    post:
+      summary: Troca a senha (encerra as outras sessões)
+      tags:
+      - Conta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - current_password
+              - new_password
+              additionalProperties: false
+              properties:
+                current_password:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                new_password:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthPassword
+      x-operation-id-source: derived
+  /v1/me:
+    get:
+      summary: Usuário, plano, validade e uso do mês
+      tags:
+      - Conta
+      description: 'Devolve `user`, o plano efetivo (`plan` = id, `plan_name`), `plan_valid_until`, `cancel_requested`, `plan_started_at` e `refund_eligible_until` (plano pago: confirmação do primeiro pagamento e fim dos 7 dias de arrependimento, ou `null`), `limits`, `usage` do mês, `tos_required`, `auth {password, google, google_email}` (formas de entrar: senha própria, Google vinculado e o e-mail Google mascarado), `avisos` (avisos do painel ativos na data e ainda sem ciência da conta: `[{id, titulo, texto, links: [{rotulo, url}]}]`; a primeira devolução registra a exibição), `checkout {pending, plan, plan_name}` (pedido de assinatura aguardando pagamento, lido só do banco local, sem consultar o provedor: com `pending: true` o painel mostra a faixa de pagamento pendente e busca os detalhes em `GET /v1/billing/pending`) e `billing {provider, test_mode, available, requires_document, portal}` (provedor de pagamento: `stripe` ou `asaas`; modo de teste; se a conta pode assinar agora; se o checkout pede CPF/CNPJ; se há portal do cliente para trocar cartão e ver faturas).'
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1Me
+      x-operation-id-source: derived
+  /v1/avisos/{id}/ciencia:
+    post:
+      summary: Registra a ciência de um aviso do painel
+      tags:
+      - Conta
+      description: 'Grava a data e hora em que a conta deu ciência do aviso (idempotente: vale o primeiro registro). 404 `not_found` para aviso inexistente ou fora da janela de exibição. Requer o header `X-Requested-With: apipj`.'
+      parameters:
+      - schema:
+          type: string
+          minLength: 1
+          maxLength: 64
+        in: path
+        name: id
+        required: true
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AvisosByIdCiencia
+      x-operation-id-source: derived
+  /v1/usage:
+    get:
+      summary: Uso do mês, limites do plano e data de reset
+      tags:
+      - Conta
+      description: Aceita sessão (cookie) ou chave de API. `used`/`quota`/`remaining` e `reset_at` (ISO) também aparecem na raiz, além do bloco `usage`.
+      security:
+      - cookie: []
+      - bearer: []
+      - apiKey: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1Usage
+      x-operation-id-source: derived
+  /v1/account/close:
+    post:
+      summary: Encerra a conta (carência de 30 dias para reativar)
+      tags:
+      - Conta
+      description: 'Confirma a senha (`password`) ou, em conta sem senha própria (criada com o Google), o e-mail da conta digitado de novo (`confirm_email`); cancela a assinatura no Asaas (se houver), revoga todas as chaves, encerra as sessões e marca a conta para eliminação após 30 dias (termos §4.7; política §8). Dentro da carência, um novo login reativa a conta. 400 `validation_error` se faltar o campo exigido pela conta (ver `auth.password` em /v1/me); 401 `unauthorized` se não confere (5 erros em 15 minutos bloqueiam por 15 minutos). Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                password:
+                  type: string
+                  minLength: 1
+                  maxLength: 256
+                  description: Senha da conta (contas com senha própria)
+                confirm_email:
+                  type: string
+                  minLength: 1
+                  maxLength: 254
+                  description: E-mail da conta, digitado de novo (contas sem senha, criadas com o Google)
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AccountClose
+      x-operation-id-source: derived
+  /v1/auth/providers:
+    get:
+      summary: Formas de login disponíveis
+      tags:
+      - Conta
+      description: '`google: true` quando o login com Google está configurado; o site só mostra o botão nesse caso.'
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1AuthProviders
+      x-operation-id-source: derived
+  /v1/auth/google/start:
+    get:
+      summary: Inicia o login com Google (navegação de topo, responde 302)
+      tags:
+      - Conta
+      description: 'Abrir como link (não por fetch). `intent`: `login` (padrão), `signup` (exige `tos` igual à versão vigente dos termos, marcada no formulário) ou `link` (vincula à conta da sessão atual). `next` só aceita `/painel`, `/precos`, `/sandbox`, `/consulta-cnpj-em-lote`, `/painel?assinar={id}` para um plano pago público de `config/plans.json` ou `/autorizar?pedido={id}` (página de consentimento do OAuth do MCP; id de 43 caracteres base64url) (comparação exata, codificado na URL; qualquer outro valor vira `/painel`). Grava um estado de uso único (10 min) e o cookie do fluxo, e redireciona ao Google com `state`, `nonce` e PKCE S256. Com o recurso desligado, ou `intent=link` sem sessão ou iniciado por outro site (`Sec-Fetch-Site`), redireciona para `/entrar?erro=google_falhou` ou `google_estado`; `intent=signup` vindo de outro site não vale como aceite (segue para a confirmação).'
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - login
+          - signup
+          - link
+          default: login
+        in: query
+        name: intent
+        required: false
+      - schema:
+          type: string
+          maxLength: 200
+        in: query
+        name: next
+        required: false
+      - schema:
+          type: string
+          maxLength: 20
+        in: query
+        name: tos
+        required: false
+        description: Versão dos termos aceita no formulário (obrigatória em intent=signup)
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1AuthGoogleStart
+      x-operation-id-source: derived
+  /v1/auth/google/callback:
+    get:
+      summary: Retorno do Google (responde 302)
+      tags:
+      - Conta
+      description: 'Confere o cookie do fluxo contra `state` (uso único, 10 min), troca o `code` (client_secret + code_verifier) e valida o id_token (RS256/JWKS, iss, aud, exp, nonce, email_verified). Destinos: conta já vinculada → `next` com sessão; `intent=link` → `/painel?google=vinculado`; conta com o mesmo e-mail → vínculo automático só se a posse do e-mail da conta já foi comprovada (conta sem senha própria) e o Google administra o endereço (@gmail.com/@googlemail.com ou `hd` igual ao domínio), senão `/entrar?google=vincular`; conta que já tem outra conta Google não troca o vínculo (`google_ja_vinculado`); sem conta → `intent=signup` com aceite cria a conta sem chave e vai a `/painel?boas-vindas=1` (com `next=/sandbox`, volta a `/sandbox`; com `next=/painel?assinar={id}`, vai a `/painel?assinar={id}&boas-vindas=1`), senão `/criar-conta?google=1` (confirmação). Erros: `/entrar?erro=google_cancelado|google_estado|google_falhou|google_email_nao_verificado|google_ja_vinculado`.'
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1AuthGoogleCallback
+      x-operation-id-source: derived
+  /v1/auth/google/pending:
+    get:
+      summary: Dados da conta Google aguardando confirmação do cadastro
+      tags:
+      - Conta
+      description: Lê o cookie do cadastro pendente (10 min). `{email, name, tos_version}`; 401 `unauthorized` se não houver ou tiver expirado.
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1AuthGooglePending
+      x-operation-id-source: derived
+  /v1/auth/google/complete:
+    post:
+      summary: Confirma o cadastro com Google (aceite dos termos)
+      tags:
+      - Conta
+      description: 'Exige o cookie do cadastro pendente, `accept_tos: true` e `tos_version` igual à vigente (senão 400 `tos_required`). Cria a conta sem senha e sem chave, abre a sessão e apaga o pendente: 201 `{user, next}`. 401 se o pendente expirou; 409 `email_in_use`/`google_in_use` se a conta passou a existir. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - accept_tos
+              - tos_version
+              additionalProperties: false
+              properties:
+                accept_tos:
+                  type: boolean
+                tos_version:
+                  type: string
+                  maxLength: 20
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthGoogleComplete
+      x-operation-id-source: derived
+  /v1/auth/google/unlink:
+    post:
+      summary: Desvincula o Google da conta
+      tags:
+      - Conta
+      description: 'Só para contas com senha própria; sem senha, 400 `password_required` (seria impossível entrar de novo). Sem Google vinculado, responde ok. Requer o header `X-Requested-With: apipj`.'
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1AuthGoogleUnlink
+      x-operation-id-source: derived
+  /v1/oauth/pedido/{id}:
+    get:
+      summary: Pedido de conexão de um aplicativo (página /autorizar)
+      tags:
+      - Conta
+      description: 'Dados do pedido criado por `GET /oauth/authorize` (10 minutos): `cliente {nome, host, tipo}` (host do client_id quando o cliente se identifica por URL), `redirect {host, loopback}` (para onde a pessoa volta), `loopback_apenas`, `acesso` (o que a autorização permite), `expira_em`, `conta {email, nome}` da sessão atual ou `null` e `tos_version`. 404 `pedido_expirado` se não existe, expirou ou já foi decidido.'
+      parameters:
+      - schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{43}$
+        in: path
+        name: id
+        required: true
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1OauthPedidoById
+      x-operation-id-source: derived
+  /v1/oauth/pedido/{id}/decisao:
+    post:
+      summary: Autoriza ou recusa o aplicativo do pedido
+      tags:
+      - Conta
+      description: '`{autorizar: true|false}` com sessão. Uso único: o pedido some depois da decisão. Devolve `{redirect}`, a URL de volta ao aplicativo com `code` e `state` (ou `error=access_denied`) e `iss`; a página navega até ela. 401 sem sessão; 404 `pedido_expirado`. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - autorizar
+              additionalProperties: false
+              properties:
+                autorizar:
+                  type: boolean
+      parameters:
+      - schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{43}$
+        in: path
+        name: id
+        required: true
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1OauthPedidoByIdDecisao
+      x-operation-id-source: derived
+  /v1/oauth/aplicativos:
+    get:
+      summary: Aplicativos conectados à conta (OAuth)
+      tags:
+      - Conta
+      description: 'Concessões ativas: `{aplicativos: [{id, nome, host, redirect_host, tipo, criado_em, usado_em}]}`. Cada conexão autorizada (por exemplo, o conector do Claude) aparece uma vez.'
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1OauthAplicativos
+      x-operation-id-source: derived
+  /v1/oauth/aplicativos/{id}:
+    delete:
+      summary: Desconecta um aplicativo (revoga os tokens na hora)
+      tags:
+      - Conta
+      description: 'Revoga a concessão: o token de acesso e o refresh token do aplicativo param de valer imediatamente (o MCP responde 401 e o aplicativo pede para conectar de novo). 404 se não existe ou já foi revogada. Requer o header `X-Requested-With: apipj`.'
+      parameters:
+      - schema:
+          type: integer
+          minimum: 1
+        in: path
+        name: id
+        required: true
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: deleteV1OauthAplicativosById
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Authorization: Bearer <chave>'
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    cookie:
+      type: apiKey
+      in: cookie
+      name: __Host-apipj_session

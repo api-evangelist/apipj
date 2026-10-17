@@ -1,0 +1,133 @@
+openapi: 3.2.0
+info:
+  title: apipj Consulta API
+  version: 0.1.0
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado` (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.
+  contact:
+    email: brunogalizzi@masterbi.com
+servers:
+- url: https://apipj.com.br
+tags:
+- name: Consulta
+  description: Consulta de CNPJ (exige chave de API ou sessão do site)
+paths:
+  /v1/cnpj/{cnpj}:
+    get:
+      summary: Consulta os dados cadastrais de um CNPJ
+      tags:
+      - Consulta
+      description: 'Autenticação obrigatória: `Authorization: Bearer ` (preferido), `X-API-Key: ` ou `?token=` (obsoleto); no site, o cookie de sessão (mesma origem) também vale. Valem o limite por minuto e a cota mensal do plano do usuário (chaves e sessão somam na mesma cota). Sem autenticação: 401 `unauthorized`. Cabeçalhos sempre presentes: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-Quota-Limit, X-Quota-Remaining, X-Quota-Reset. Erros: 400 `invalid_cnpj`, 401 `unauthorized`, 404 `not_found`, 429 `rate_limited` ou `quota_exceeded` (com `Retry-After` / `upgrade_url`).'
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - completo
+          - simplificado
+          default: completo
+        in: query
+        name: formato
+        required: false
+        description: 'Formato da resposta: `completo` (padrão: documento estruturado, com códigos e descrições) ou `simplificado` (formato plano para integrações que preferem campos já formatados: datas DD/MM/AAAA, CNPJ, CEP e telefone com máscara)'
+      - schema:
+          type: string
+          maxLength: 80
+          deprecated: true
+        in: query
+        name: token
+        required: false
+        description: 'Chave de API na query string (obsoleto: use o header Authorization)'
+        deprecated: true
+      - schema:
+          type: string
+          minLength: 1
+          maxLength: 32
+        in: path
+        name: cnpj
+        required: true
+        description: CNPJ com ou sem pontuação (numérico ou alfanumérico)
+      security:
+      - bearer: []
+      - apiKey: []
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1CnpjByCnpj
+      x-operation-id-source: derived
+  /v1/busca:
+    get:
+      summary: Busca CNPJs ativos por atividade (CNAE principal) e município
+      tags:
+      - Consulta
+      description: 'Lista estabelecimentos **ativos** pela atividade econômica principal (`cnae`) e/ou pelo município (`municipio`); pelo menos um dos dois filtros é obrigatório (senão 400 `validation_error`). Autenticação como em `/v1/cnpj`: `Authorization: Bearer ` (preferido), `X-API-Key` ou o cookie de sessão do site; sem autenticação, 401 `unauthorized`. Paginação por cursor: a página tem no máximo o limite por minuto do plano (ou `limite`, de 1 até esse valor; teto de 1000) e é cortada pelo que ainda resta no minuto e na cota do mês. Envie `proximo_cursor` como `cursor` para a página seguinte; `null` indica o fim. **Cada CNPJ devolvido consome 1 do limite por minuto e 1 da cota mensal**, na mesma contabilidade de `/v1/cnpj` (mesma chave, mesma cota). Página vazia não consome nada. Os resultados não trazem o quadro de sócios (`socios` no formato completo, `qsa` no simplificado): sócios só na consulta individual. CNPJs cujo titular se opôs à busca ficam de fora (e do `total`). Resposta: `{dataset_month, total, resultados, proximo_cursor}`, com os cabeçalhos X-RateLimit-* e X-Quota-*. Erros: 400 `validation_error` ou `cursor_invalido` (cursor de outra busca, de outro mês da base ou malformado), 401 `unauthorized`, 429 `rate_limited` (com `Retry-After`) ou `quota_exceeded` (com `upgrade_url`), 503 `busca_indisponivel` (índice em atualização) ou `busca_em_breve` (antes do início da vigência).'
+      parameters:
+      - schema:
+          type: string
+          maxLength: 20
+        in: query
+        name: cnae
+        required: false
+        description: CNAE da atividade principal, 7 dígitos, com ou sem pontuação (4781400 ou 47.81-4-00)
+      - schema:
+          type: string
+          maxLength: 20
+        in: query
+        name: municipio
+        required: false
+        description: 'Município: código da Receita Federal (4 dígitos, o `endereco.municipio.codigo_rfb`) ou do IBGE (7 dígitos)'
+      - schema:
+          type: string
+          maxLength: 512
+        in: query
+        name: cursor
+        required: false
+        description: Valor de `proximo_cursor` da página anterior (mesmos filtros)
+      - schema:
+          type: string
+          enum:
+          - completo
+          - simplificado
+          default: completo
+        in: query
+        name: formato
+        required: false
+        description: Formato de cada resultado, como em `/v1/cnpj` (sem os sócios)
+      - schema:
+          type: integer
+          minimum: 1
+        in: query
+        name: limite
+        required: false
+        description: 'Tamanho máximo da página, de 1 até o limite por minuto do plano (padrão: esse limite)'
+      - schema:
+          type: string
+          maxLength: 80
+          deprecated: true
+        in: query
+        name: token
+        required: false
+        description: 'Chave de API na query string (obsoleto: use o header Authorization)'
+        deprecated: true
+      security:
+      - bearer: []
+      - apiKey: []
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1Busca
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Authorization: Bearer <chave>'
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    cookie:
+      type: apiKey
+      in: cookie
+      name: __Host-apipj_session

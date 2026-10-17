@@ -81,17 +81,60 @@ apis:
   baseURL: https://apipj.com.br
   properties: []
   aid: apipj:cnpj-lookup-api
-- aid: apipj:apipj-api
-  name: apipj API
-  description: 'API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado`
-
-    (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.'
+- aid: apipj:apipj-billing-api
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Billing API
+  description: Assinaturas (Stripe; Asaas como alternativa)
   humanURL: https://apipj.com.br/docs
-  baseURL: https://apipj.com.br
+  tags:
+  - Billing
   properties:
   - type: OpenAPI
-    url: openapi/_original/apipj-api-openapi.json
-
+    url: openapi/apipj-billing-api-openapi.yml
+- aid: apipj:apipj-chaves-api
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Chaves API
+  description: Chaves de API
+  humanURL: https://apipj.com.br/docs
+  tags:
+  - Chaves
+  properties:
+  - type: OpenAPI
+    url: openapi/apipj-chaves-api-openapi.yml
+- aid: apipj:apipj-consulta-api
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Consulta API
+  description: Consulta de CNPJ (exige chave de API ou sessão do site)
+  humanURL: https://apipj.com.br/docs
+  tags:
+  - Consulta
+  properties:
+  - type: OpenAPI
+    url: openapi/apipj-consulta-api-openapi.yml
+- aid: apipj:apipj-conta-api
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Conta API
+  description: Cadastro, login e perfil (sessão por cookie)
+  humanURL: https://apipj.com.br/docs
+  tags:
+  - Conta
+  properties:
+  - type: OpenAPI
+    url: openapi/apipj-conta-api-openapi.yml
+- aid: apipj:apipj-interno-api
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Interno API
+  description: Rotas internas (webhooks)
+  humanURL: https://apipj.com.br/docs
+  tags:
+  - Interno
+  properties:
+  - type: OpenAPI
+    url: openapi/apipj-interno-api-openapi.yml
+- aid: apipj:apipj-p-blico-api
+  name: apipj (MASTER BI TECNOLOGIA LTDA) Público API
+  description: Sem autenticação
+  humanURL: https://apipj.com.br/docs
+  tags:
+  - Público
+  properties:
+  - type: OpenAPI
+    url: openapi/apipj-p-blico-api-openapi.yml
 x-submission-notes: Brazilian CNPJ company-registry lookup API (public registry data), named operating company, documented endpoints
 
 x-submission-probe: root 200, docs 200; soft-404 ok

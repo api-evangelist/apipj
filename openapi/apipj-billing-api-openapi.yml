@@ -1,0 +1,163 @@
+openapi: 3.2.0
+info:
+  title: apipj Billing API
+  version: 0.1.0
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado` (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.
+  contact:
+    email: brunogalizzi@masterbi.com
+servers:
+- url: https://apipj.com.br
+tags:
+- name: Billing
+  description: Assinaturas (Stripe; Asaas como alternativa)
+paths:
+  /v1/billing/checkout:
+    post:
+      summary: Inicia a assinatura de um plano pago
+      tags:
+      - Billing
+      description: 'Provedor em `GET /v1/plans` → `billing.provider`. **Stripe:** cria (ou reaproveita, com `reused: true`) uma Checkout Session de assinatura mensal e devolve `{url, plan, value, reused, return_supported: true}`; `url` é a página do Stripe (checkout.stripe.com), que pede o cartão e o CPF/CNPJ (nada disso passa por esta API) e volta para `/painel?pagamento=retorno&session_id=…` (ou `/painel?pagamento=cancelado`). Sem `cpf_cnpj`. Em produção com o Stripe em modo de teste, só contas liberadas assinam: as demais recebem 403 `checkout_indisponivel` ("Assinaturas abrindo em breve"); preço do Stripe divergente de `config/plans.json`: 503 `checkout_indisponivel`. **Asaas:** cria (ou reaproveita) a assinatura no Asaas e devolve `{url, plan, value, reused, return_supported}`: `url` é a fatura hospedada, onde o cliente informa o cartão (nenhum dado de cartão passa por esta API). A assinatura é criada com retorno automático para `/painel?pagamento=retorno` (`return_supported: true`: abra a fatura na mesma aba); se o Asaas recusar o retorno (site não cadastrado na conta Asaas), ela é refeita sem ele e `return_supported` vem `false` (abra a fatura em outra aba e mantenha o painel consultando `POST /v1/billing/sync`). Com `reused: true` a fatura pendente do mesmo plano foi reaproveitada. Exige CPF/CNPJ: se o cadastro não tem, envie `cpf_cnpj` no corpo (fica gravado na conta). Pedido anterior já pago no Asaas e ainda não ativado: 409 `checkout_already_paid` (o plano é ativado na hora e nada é recriado). Conta em revisão por contestação de pagamento: 403 `account_under_review`. Pedidos simultâneos da mesma conta são atendidos um de cada vez (o segundo do mesmo plano reaproveita a fatura do primeiro). Limite: 10 por minuto por IP e, por usuário, 6 por minuto e 30 por hora (429 `rate_limited` com `Retry-After`). Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - plan
+              additionalProperties: false
+              properties:
+                plan:
+                  type: string
+                  minLength: 1
+                  maxLength: 30
+                cpf_cnpj:
+                  type: string
+                  maxLength: 24
+                  description: CPF ou CNPJ do titular (só é usado se a conta ainda não tem um)
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1BillingCheckout
+      x-operation-id-source: derived
+  /v1/billing/pending:
+    get:
+      summary: Pagamento pendente do pedido em andamento
+      tags:
+      - Billing
+      description: '`{pending: null}` ou `{pending: {plan, plan_name, value, invoice_url, due_date, created_at, return_supported}}`: a fatura ainda não paga da assinatura criada pelo checkout (consulta o Asaas; guardada por 30 s por usuário). `invoice_url` reaproveita a mesma fatura ("Continuar pagamento"). Falha do Asaas: 502 `billing_unavailable`. `GET /v1/me` traz `checkout.pending` (só o banco local) para decidir se vale consultar esta rota.'
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1BillingPending
+      x-operation-id-source: derived
+  /v1/billing/cancel-pending:
+    post:
+      summary: Cancela o pedido ainda não pago
+      tags:
+      - Billing
+      description: 'Remove no Asaas a assinatura criada pelo checkout que ainda não foi paga e limpa o pedido: `{cancelled: true, plan, plan_name, plan_valid_until}` (o plano atual da conta, que não muda). 409 `no_pending_checkout` se não há pedido pendente; 409 `checkout_already_paid` se o Asaas já confirmou o pagamento (o plano é ativado na hora; para não renovar, use `POST /v1/billing/cancel`). Falha do Asaas: 502 `billing_unavailable`, nada muda. Numa troca de plano a assinatura anterior já foi removida no checkout: o plano atual segue até `plan_valid_until`, sem renovação. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1BillingCancelPending
+      x-operation-id-source: derived
+  /v1/billing/sync:
+    post:
+      summary: Confere o pagamento do pedido no Asaas e ativa o plano
+      tags:
+      - Billing
+      description: 'Para a volta do Asaas (`/painel?pagamento=retorno`) e para o painel com pedido em andamento: reconsulta no Asaas as cobranças da assinatura da conta e, se o Asaas diz `CONFIRMED`/`RECEIVED`, ativa o plano pelo mesmo caminho do webhook (idempotente com ele: uma só ativação). Nunca ativa sem a confirmação do Asaas. Devolve `{status, plan, plan_name, plan_valid_until, limits: {rpm, monthly_quota}, activated, checked}`: `status` = `active` (plano pago vigente e nenhum pedido pendente), `pending` (pedido aguardando o pagamento; `plan` é o plano pedido) ou `none` (nenhum pedido e plano gratuito); `activated` = esta chamada ativou o plano; `checked` = o Asaas foi consultado nesta chamada (`false`: sem pedido pendente, consulta recente, teto de consultas ou Asaas indisponível; a resposta sai do estado local, sem erro). Limite: 30 por minuto por usuário (429 `rate_limited` com `Retry-After`). Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                session_id:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: 'Stripe: o session_id do retorno do Checkout (/painel?pagamento=retorno&session_id=…); precisa ser da conta (senão 403 checkout_session_mismatch)'
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1BillingSync
+      x-operation-id-source: derived
+  /v1/billing/cancel:
+    post:
+      summary: Cancela a assinatura (plano vale até o fim do período pago) ou exerce o…
+      tags:
+      - Billing
+      description: 'No provedor que ativou o plano: no Stripe, `cancel_at_period_end` (a assinatura não renova e acaba no fim do período pago); no Asaas, remove a assinatura. O plano continua ativo até `plan_valid_until`; depois cai para o gratuito. Com `{"refund": true}` dentro de `refund_eligible_until` (7 dias da confirmação do primeiro pagamento do plano, CDC art. 49; termos §6.7): estorno da primeira cobrança no mesmo cartão e volta imediata ao gratuito. O estorno é integral quando o uso desde a ativação ficou em até 20% da cota mensal; acima disso é limitado à parte não utilizada (`refund_full: false`, cálculo em `usage` e no e-mail); uso igual ou acima da cota, ou fora das condições, responde 400 `refund_not_eligible` com `reason`. Um pedido de estorno por contratação: pedidos repetidos ou simultâneos recebem 400 `refund_not_eligible` (`ja_estornado`); erro do Asaas responde 502 e o pedido pode ser repetido; sem resposta do Asaas (timeout), 502 com o pedido mantido e orientação para falar com o suporte. Confirmação por e-mail nos dois casos. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                refund:
+                  type: boolean
+                  description: 'true = desistência em 7 dias: estorno integral se o uso desde a ativação ficou em até 20% da cota mensal; acima disso, limitado à parte não utilizada (refund_full:false, cálculo em usage); uso igual ou acima da cota: 400 refund_not_eligible (uso_excessivo)'
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1BillingCancel
+      x-operation-id-source: derived
+  /v1/billing/portal:
+    post:
+      summary: Portal do cliente do Stripe (cartão e faturas)
+      tags:
+      - Billing
+      description: 'Plano pago ativado pelo Stripe: devolve `{url}` de uma sessão do portal do cliente do Stripe (billing.stripe.com, válida por pouco tempo; abra na hora), com volta para `/painel`. O portal serve só para trocar o cartão e ver as faturas; cancelar e desistir continuam em `POST /v1/billing/cancel`. Sem assinatura no Stripe: 400 `no_subscription`. Falha do Stripe: 502 `billing_unavailable`. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1BillingPortal
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Authorization: Bearer <chave>'
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    cookie:
+      type: apiKey
+      in: cookie
+      name: __Host-apipj_session

@@ -1,0 +1,69 @@
+openapi: 3.2.0
+info:
+  title: apipj Público API
+  version: 0.1.0
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado` (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.
+  contact:
+    email: brunogalizzi@masterbi.com
+servers:
+- url: https://apipj.com.br
+tags:
+- name: Público
+  description: Sem autenticação
+paths:
+  /v1/status:
+    get:
+      summary: Status do serviço e do dataset
+      tags:
+      - Público
+      description: Sem autenticação. Informa o mês do dataset da Receita Federal carregado e a quantidade de CNPJs.
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1Status
+      x-operation-id-source: derived
+  /v1/valida/{cnpj}:
+    get:
+      summary: Valida formato e dígitos verificadores de um CNPJ
+      tags:
+      - Público
+      description: Sem autenticação e sem consumo de cota. Aceita CNPJ numérico ou alfanumérico (IN RFB 2.229/2024), com ou sem pontuação. Não consulta a base.
+      parameters:
+      - schema:
+          type: string
+          minLength: 1
+          maxLength: 32
+        in: path
+        name: cnpj
+        required: true
+        description: CNPJ com ou sem pontuação (numérico ou alfanumérico)
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1ValidaByCnpj
+      x-operation-id-source: derived
+  /v1/plans:
+    get:
+      summary: Planos e limites públicos
+      tags:
+      - Público
+      description: Mesmo conteúdo de config/plans.json, só os planos públicos, mais `billing {provider, test_mode, available, requires_document}` (provedor de pagamento e se as assinaturas estão abertas).
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1Plans
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Authorization: Bearer <chave>'
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    cookie:
+      type: apiKey
+      in: cookie
+      name: __Host-apipj_session

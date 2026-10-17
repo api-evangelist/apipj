@@ -1,0 +1,82 @@
+openapi: 3.2.0
+info:
+  title: apipj Chaves API
+  version: 0.1.0
+  description: API de consulta de CNPJ a partir dos dados abertos da Receita Federal. Formato `completo` (padrão, documento estruturado) ou `simplificado` (formato plano com campos já formatados). Suporte a CNPJ alfanumérico.
+  contact:
+    email: brunogalizzi@masterbi.com
+servers:
+- url: https://apipj.com.br
+tags:
+- name: Chaves
+  description: Chaves de API
+paths:
+  /v1/keys:
+    get:
+      summary: Lista as chaves ativas (só o prefixo)
+      tags:
+      - Chaves
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: getV1Keys
+      x-operation-id-source: derived
+    post:
+      summary: Cria uma chave (mostrada uma única vez)
+      tags:
+      - Chaves
+      description: 'Máximo de 5 chaves ativas por conta e 10 criações por hora. Requer o header `X-Requested-With: apipj`.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 60
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: postV1Keys
+      x-operation-id-source: derived
+  /v1/keys/{id}:
+    delete:
+      summary: Revoga uma chave imediatamente
+      tags:
+      - Chaves
+      parameters:
+      - schema:
+          type: integer
+          minimum: 1
+        in: path
+        name: id
+        required: true
+      security:
+      - cookie: []
+      responses:
+        '200':
+          description: Default Response
+      operationId: deleteV1KeysById
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: 'Authorization: Bearer <chave>'
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    cookie:
+      type: apiKey
+      in: cookie
+      name: __Host-apipj_session
