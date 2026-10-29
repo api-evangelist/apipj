@@ -64,5 +64,103 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-apipj (MASTER BI TECNOLOGIA LTDA) is a company surfaced via the API Evangelist harvest backlog (source: new-submission) and added to the network as a stub for full-pipeline profiling.
-- https://apipj.com.br
+apipj (MASTER BI TECNOLOGIA LTDA) provides a public API for Brazilian CNPJ company registry lookup. It offers free access up to 50,000 queries per month and paid plans for higher volume. The API returns detailed company information such as legal name, registration status, address with IBGE code, activity, partners, Simples and MEI status, all in JSON directly from the Receita Federal dataset as of September 2026.
+
+**Areas:** Company · Brazil · CNPJ · Registry · Public APIs
+
+## apipj (MASTER BI TECNOLOGIA LTDA) on APIs.io
+
+Everything profiled for apipj (MASTER BI TECNOLOGIA LTDA) is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/apipj/](https://apis.io/providers/apipj/)** — or go straight to one of the APIs or properties below.
+
+### APIs (7)
+
+- [CNPJ Lookup API](https://apis.io/apis/apipj/cnpj-lookup-api/) — API de consulta de CNPJ a partir dos dados abertos da Receita Federal.
+- [apipj (MASTER BI TECNOLOGIA LTDA) Billing API](https://apis.io/apis/apipj/apipj-billing-api/) — Assinaturas (Stripe; Asaas como alternativa)
+- [apipj (MASTER BI TECNOLOGIA LTDA) Chaves API](https://apis.io/apis/apipj/apipj-chaves-api/) — Chaves de API
+- [apipj (MASTER BI TECNOLOGIA LTDA) Consulta API](https://apis.io/apis/apipj/apipj-consulta-api/) — Consulta de CNPJ (exige chave de API ou sessão do site)
+- [apipj (MASTER BI TECNOLOGIA LTDA) Conta API](https://apis.io/apis/apipj/apipj-conta-api/) — Cadastro, login e perfil (sessão por cookie)
+- [apipj (MASTER BI TECNOLOGIA LTDA) Interno API](https://apis.io/apis/apipj/apipj-interno-api/) — Rotas internas (webhooks)
+- [apipj (MASTER BI TECNOLOGIA LTDA) Público API](https://apis.io/apis/apipj/apipj-p-blico-api/) — Sem autenticação
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### Governance rules (1)
+
+Spectral rulesets for the provider's contracts.
+
+- [apipj (MASTER BI TECNOLOGIA LTDA) API Rules](https://apis.io/rules/apipj/apipj-rules/)
+
+#### Security (1)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Apipj Domain Security](https://apis.io/security/apipj/apipj-domain-security/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://apipj.com.br)
+- [Documentation](https://apipj.com.br/docs)
+- [Getting started](https://apipj.com.br/guias)
+- [Pricing](https://apipj.com.br/precos)
+- [Terms of service](https://apipj.com.br/termos)
+- [Privacy policy](https://apipj.com.br/privacidade)
+- [Status](https://apipj.com.br/status)
+
+## API Evangelist rating
+
+**Kin Score 37.2** — thin · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 64.3 |
+| Contract quality | 47.6 |
+| Contract governance | 22.0 |
+| Operational transparency | 15.8 |
+| Developer ergonomics | 35.7 |
+| Access clarity | 31.6 |
+
+**Agent readiness 37.6** — agent-ready
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | documented (partial credit) |
+| MCP Server | — |
+| Auth Clarity | served (partial credit) |
+| Idempotency | — |
+| Error Semantics | — |
+| OpenAPI Examples | — |
+| Rate Limit Signal | — |
+| Event Surface Described | — |
+| Agent Skills | — |
+| Well Known Catalog | yes |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | na |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 24.5** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/apipj/](https://apis.io/providers/apipj/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for apipj (MASTER BI TECNOLOGIA LTDA): the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/apipj/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
